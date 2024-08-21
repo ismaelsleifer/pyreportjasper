@@ -45,7 +45,7 @@ class PyReportJasper:
     TypeJava = Report.TypeJava
 
     def config(self, input_file, output_file=False, output_formats=['pdf'], parameters={}, db_connection={},
-               locale='en_US', resource=None, subreports=None):
+               locale='en_US', resource=None, subreports=None, jvm_opts=()):
         if not input_file:
             raise NameError('No input file!')
         if isinstance(output_formats, list):
@@ -94,6 +94,8 @@ class PyReportJasper:
                     setattr(self.config, mapping[key], value)
                 elif key == 'csv_first_row':
                     self.config.csvFirstRow = True
+
+            self.config.jvm_opts = jvm_opts
 
     def compile(self, write_jasper=False):
         error = None

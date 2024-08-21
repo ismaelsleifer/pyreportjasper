@@ -62,13 +62,17 @@ class Report:
                 classpath.append(self.config.jvm_classpath)
 
             if self.config.jvm_classpath is None:
-                jpype.startJVM("-Djava.system.class.loader=org.update4j.DynamicClassLoader",
-                               "-Dlog4j.configurationFile={}".format(os.path.join(self.LIB_PATH, 'log4j2.xml')),
-                               "-XX:InitialHeapSize=512M",
-                               "-XX:CompressedClassSpaceSize=64M",
-                               "-XX:MaxMetaspaceSize=128M",                            
-                               "-Xmx{}".format(self.config.jvm_maxmem),
-                               classpath=classpath)
+                jvm_args = [
+                    "-Djava.system.class.loader=org.update4j.DynamicClassLoader",
+                    "-Dlog4j.configurationFile={}".format(
+                        os.path.join(self.LIB_PATH, 'log4j2.xml')),
+                    "-XX:InitialHeapSize=512M",
+                    "-XX:CompressedClassSpaceSize=64M",
+                    "-XX:MaxMetaspaceSize=128M",                            
+                    "-Xmx{}".format(self.config.jvm_maxmem),
+                ]
+                jvm_args.extend(self.config.jvm_opts or ())
+                jpype.startJVM(*jvm_args, classpath=classpath)
 
         self.Locale = jpype.JPackage('java').util.Locale
         self.String = jpype.JPackage('java').lang.String
