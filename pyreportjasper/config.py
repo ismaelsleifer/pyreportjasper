@@ -45,6 +45,7 @@ class Config:
     useJaxen = True
     subreports = {}
 
+    jvm_opts = ()
     jvm_maxmem = '512M'
     jvm_classpath = None
 
