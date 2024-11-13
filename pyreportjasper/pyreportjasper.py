@@ -37,7 +37,8 @@ class PyReportJasper:
         'csv_meta',
         'ods',
         'pptx',
-        'jrprint'
+        'jrprint',
+        'print'
     )
 
     METHODS = ('GET', 'POST', 'PUT')
@@ -45,7 +46,7 @@ class PyReportJasper:
     TypeJava = Report.TypeJava
 
     def config(self, input_file, output_file=False, output_formats=['pdf'], parameters={}, db_connection={},
-               locale='en_US', resource=None, subreports=None, jvm_opts=()):
+               locale='en_US', resource=None, subreports=None, printerName=None):
         if not input_file:
             raise NameError('No input file!')
         if isinstance(output_formats, list):
@@ -58,6 +59,7 @@ class PyReportJasper:
         self.config.subreports = subreports if subreports else {}
         self.config.locale = locale
         self.config.resource = resource
+        self.config.printerName = printerName
         self.config.outputFormats = output_formats
         if output_file:
             self.config.output = output_file
@@ -94,8 +96,6 @@ class PyReportJasper:
                     setattr(self.config, mapping[key], value)
                 elif key == 'csv_first_row':
                     self.config.csvFirstRow = True
-
-            self.config.jvm_opts = jvm_opts
 
     def compile(self, write_jasper=False):
         error = None
@@ -175,7 +175,8 @@ class PyReportJasper:
                         'csv_meta': report.export_csv_meta,
                         'ods': report.export_ods,
                         'pptx': report.export_pptx,
-                        'jrprint': report.export_jrprint
+                        'jrprint': report.export_jrprint,
+                        'print': report.export_print
                     }
 
                     for f in self.config.outputFormats:

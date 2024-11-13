@@ -62,23 +62,30 @@ class Report:
                 classpath.append(self.config.jvm_classpath)
 
             if self.config.jvm_classpath is None:
-                jvm_args = [
-                    "-Djava.system.class.loader=org.update4j.DynamicClassLoader",
-                    "-Dlog4j.configurationFile={}".format(
-                        os.path.join(self.LIB_PATH, 'log4j2.xml')),
-                    "-XX:InitialHeapSize=512M",
-                    "-XX:CompressedClassSpaceSize=64M",
-                    "-XX:MaxMetaspaceSize=128M",                            
-                    "-Xmx{}".format(self.config.jvm_maxmem),
-                ]
-                jvm_args.extend(self.config.jvm_opts or ())
-                jpype.startJVM(*jvm_args, classpath=classpath)
+                jpype.startJVM("-Djava.system.class.loader=org.update4j.DynamicClassLoader",
+                               "-Dlog4j.configurationFile={}".format(os.path.join(self.LIB_PATH, 'log4j2.xml')),
+                               "-XX:InitialHeapSize=512M",
+                               "-XX:CompressedClassSpaceSize=64M",
+                               "-XX:MaxMetaspaceSize=128M",                            
+                               "-Xmx{}".format(self.config.jvm_maxmem),
+                               classpath=classpath)
 
         self.Locale = jpype.JPackage('java').util.Locale
         self.String = jpype.JPackage('java').lang.String
         self.jvJRLoader = jpype.JPackage('net').sf.jasperreports.engine.util.JRLoader
         self.JasperReport = jpype.JPackage('net').sf.jasperreports.engine.JasperReport
         self.JasperPrint = jpype.JPackage('net').sf.jasperreports.engine.JasperPrint
+
+
+        self.JRPrintServiceExporter = jpype.JPackage('net').sf.jasperreports.engine.export.JRPrintServiceExporter
+        self.JRPrintServiceExporterParameter = jpype.JPackage('net').sf.jasperreports.engine.export.JRPrintServiceExporterParameter
+        self.PrinterName = jpype.JPackage('javax').print.attribute.standard.PrinterName
+        self.HashPrintRequestAttributeSet = jpype.JPackage('javax').print.attribute.HashPrintRequestAttributeSet
+        self.HashPrintServiceAttributeSet = jpype.JPackage('javax').print.attribute.HashPrintServiceAttributeSet
+        self.PrintRequestAttributeSet = jpype.JPackage('javax').print.attribute.PrintRequestAttributeSet
+        self.Copies = jpype.JPackage('javax').print.attribute.standard.Copies
+
+
         self.JRXmlLoader = jpype.JPackage('net').sf.jasperreports.engine.xml.JRXmlLoader
         self.jvJasperCompileManager = jpype.JPackage('net').sf.jasperreports.engine.JasperCompileManager
         self.LocaleUtils = jpype.JPackage('org').apache.commons.lang.LocaleUtils
@@ -478,6 +485,26 @@ class Report:
 
     def export_jrprint(self):
         self.JRSaver.saveObject(self.jasper_print, self.get_output_stream('.jrprint'))
+
+    def export_print(self):
+        if(self.config.printerName):
+            printRequestAttributeSet = self.HashPrintRequestAttributeSet()
+            printRequestAttributeSet.add(self.Copies(1))      
+
+            printerName = self.PrinterName(jpype.JString(self.config.printerName), None)
+            printServiceAttributeSet = self.HashPrintServiceAttributeSet()
+            printServiceAttributeSet.add(printerName)
+
+            exporter = self.JRPrintServiceExporter()
+            exporter.setParameter(self.JRPrintServiceExporterParameter.JASPER_PRINT, self.jasper_print)
+            exporter.setParameter(self.JRPrintServiceExporterParameter.PRINT_REQUEST_ATTRIBUTE_SET, printRequestAttributeSet)
+            exporter.setParameter(self.JRPrintServiceExporterParameter.PRINT_SERVICE_ATTRIBUTE_SET, printServiceAttributeSet)
+            exporter.setParameter(self.JRPrintServiceExporterParameter.DISPLAY_PAGE_DIALOG, False)
+            exporter.setParameter(self.JRPrintServiceExporterParameter.DISPLAY_PRINT_DIALOG, False)
+            exporter.exportReport()
+
+        else:
+            raise NameError('Nome da impressora não informado!')
 
     def get_report_parameters(self):
         """
